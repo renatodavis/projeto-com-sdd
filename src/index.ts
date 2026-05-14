@@ -1,39 +1,62 @@
-import { Calculator } from './core/Calculator';
-import { CalculatorError } from './core/types';
+```typescript
+import { Calculator } from './calculator';
+import { parseAndValidateNumber } from './utils/validator';
+import { Operation } from './types';
 
 /**
- * Ponto de entrada (Entry point) do projeto.
- * Serve como um pequeno script de demonstração da biblioteca em funcionamento no console.
+ * Função principal que processa a Interface de Linha de Comando (CLI).
  */
 function main() {
-  console.log('=== Calculadora Básica Inicializada ===\n');
+    // Pega os argumentos da linha de comando, ignorando 'node' e o nome do arquivo.
+    const args = process.argv.slice(2);
 
-  const calc = new Calculator();
-
-  try {
-    console.log('Soma (2 + 2):', calc.add(2, 2));
-    
-    console.log('Subtração (10 - 5):', calc.subtract(10, 5));
-    
-    console.log('Multiplicação (3 * 3):', calc.multiply(3, 3));
-    
-    console.log('Divisão (10 / 2):', calc.divide(10, 2));
-    
-    // Demonstração da correção de precisão decimal do IEEE 754
-    console.log('Precisão (0.1 + 0.2):', calc.add(0.1, 0.2));
-
-    // Demonstração de erro (Divisão por zero)
-    console.log('\nTentando dividir por zero (5 / 0)...');
-    console.log(calc.divide(5, 0));
-
-  } catch (error) {
-    if (error instanceof CalculatorError) {
-      console.error('Erro capturado com sucesso:', error.message);
-    } else {
-      console.error('Erro inesperado:', error);
+    if (args.length < 3) {
+        console.error("Uso incorreto. Formato esperado:");
+        console.error("npm start <operacao> <num1> <num2>");
+        console.error("Operações disponíveis: add, subtract, multiply, divide");
+        process.exit(1);
     }
-  }
+
+    const operationName = args[0] as Operation;
+
+    try {
+        // Valida as entradas e trata pontos flutuantes de forma segura
+        const num1 = parseAndValidateNumber(args[1]);
+        const num2 = parseAndValidateNumber(args[2]);
+
+        const calculator = new Calculator();
+        let result: number;
+
+        // Executa a operação apropriada
+        switch (operationName) {
+            case 'add':
+                result = calculator.add(num1, num2);
+                break;
+            case 'subtract':
+                result = calculator.subtract(num1, num2);
+                break;
+            case 'multiply':
+                result = calculator.multiply(num1, num2);
+                break;
+            case 'divide':
+                result = calculator.divide(num1, num2);
+                break;
+            default:
+                throw new Error(`Operação "${operationName}" não reconhecida. Use: add, subtract, multiply, divide.`);
+        }
+
+        console.log(`Resultado: ${result}`);
+        
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error(`Erro: ${error.message}`);
+        } else {
+            console.error("Ocorreu um erro desconhecido.");
+        }
+        process.exit(1);
+    }
 }
 
-// Executa a função principal
+// Inicializa o CLI
 main();
+```
